@@ -1,0 +1,6 @@
+---
+docker:
+  cgroupdriver:   "systemd"
+  storage_driver: "overlay2"
+  concurrent_uploads: 1
+  

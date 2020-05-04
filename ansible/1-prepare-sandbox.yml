@@ -1,0 +1,14 @@
+---
+- name: prepare node
+  hosts: all
+  roles:
+  - prepare-sandbox/prepare-system
+  - prepare-sandbox/prepare-network
+  - prepare-sandbox/prepare-users
+  - prepare-sandbox/install-docker
+  
+- name: lock ubuntu account
+  hosts: all
+  roles:
+  - prepare-sandbox/lock-ubuntu-user
+  
