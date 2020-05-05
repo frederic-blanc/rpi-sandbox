@@ -20,14 +20,14 @@
     - gcc
   become:           true
   
-- name: update pip
-  pip:
-    name:           "{{ packages }}"
-    executable:     pip3
-    state:          latest
-  vars:
-    packages:
-    - pip
-    - virtualenv
-    - testresources
+#- name: update pip
+#  pip:
+#    name:           "{{ packages }}"
+#    executable:     pip3
+#    state:          latest
+#  vars:
+#    packages:
+#    - pip
+#    - virtualenv
+#    - testresources
   
