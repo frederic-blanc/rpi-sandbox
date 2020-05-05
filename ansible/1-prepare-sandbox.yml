@@ -6,6 +6,7 @@
   - prepare-sandbox/prepare-network
   - prepare-sandbox/prepare-users
   - prepare-sandbox/install-docker
+  - prepare-sandbox/install-python
   
 - name: lock ubuntu account
   hosts: all
