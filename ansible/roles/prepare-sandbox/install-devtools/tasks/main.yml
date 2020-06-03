@@ -22,4 +22,6 @@
     - libffi-dev
     - libssl-dev
     - gcc
+    - pkg-config
   become:           true
+  

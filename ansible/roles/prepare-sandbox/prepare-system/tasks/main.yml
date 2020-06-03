@@ -19,6 +19,139 @@
   register:         boot_config
   become:           true
   
+- name: install raspberrypi userland and rpi-eeprom tools
+  block:
+  - name: Install needed tools
+    apt: 
+      name:             "{{ packages }}"
+      state:            present
+      update_cache:     yes
+      autoremove:       yes
+      force_apt_get:    yes
+    vars:
+      packages:
+      - gcc
+      - pkg-config
+      - cmake
+      - git
+      - python3
+      - python-is-python3
+    become:             true
+    
+  - name: Ensures /opt/vc exists
+    file: 
+      path:             "/opt/vc"
+      state:            directory
+      owner:            root
+      group:            root
+      mode:             '0755'
+    become:             true
+    
+  - name: download latest userland repository
+    git:
+      repo:             "https://github.com/raspberrypi/userland.git"
+      dest:             "/opt/vc/userland"
+    become:             true
+    
+  - name: create temporary build directory
+    tempfile:
+      state:            directory
+      suffix:           ".userland"
+    register:           userland_tmp_dir
+    changed_when:       false
+    become:             true
+    
+  - name: build userland
+    shell:              "cd /opt/vc/userland ; ./buildme --aarch64 '{{ userland_tmp_dir.path }}'"
+    changed_when:       false
+    become:             true
+    no_log:             true
+    
+  - name: Synchronization of build component with /opt/vc folder
+    synchronize:
+      src:              "{{ userland_tmp_dir.path }}/opt/vc/{{ item }}"
+      dest:             "/opt/vc"
+      checksum:         yes
+      times:            no
+      archive:          yes
+      delete:           yes
+      recursive:        yes
+      links:            yes
+    with_items:
+    - bin
+    - include
+    - lib
+    - src
+    delegate_to:        "{{ ansible_eth0.ipv4.address }}"
+    become:             true
+    
+  - name: create lib config file
+    copy:
+      dest:             "/etc/ld.so.conf.d/00-vmcs.conf"
+      content:  |
+        /opt/vc/lib
+      owner:            root
+      group:            root
+      mode:             '0644'
+    become:             true
+    
+  - name: get old installed binaries cmd
+    shell:              "ls -l /usr/bin | awk -F '-> ' '$2 ~ /^\\/opt\\/vc\\/bin\\/.*$/{ print $2 }'"
+    changed_when:       false
+    become:             true
+    register:           old_binaries_cmd
+    
+  - name: set old installed binaries
+    set_fact:
+      old_binaries:     "{{ old_binaries_cmd.stdout_lines                       | map('basename')   | list }}"
+    
+  - name: find current binaries file
+    find:
+      path:             "/opt/vc/bin"
+      recurse:          no
+      file_type:        file
+    become:             true
+    register:           current_binaries_file_find
+    
+  - name: find current binaries link
+    find:
+      path:             "/opt/vc/bin"
+      recurse:          no
+      file_type:        link
+    become:             true
+    register:           current_binaries_link_find
+    
+  - name: set current binaries
+    set_fact:
+      current_binaries: "{{ (current_binaries_file_find.files + current_binaries_link_find.files) | map(attribute='path') | map('basename')   | list }}"
+    
+  - name: delete unneeded /usr/bin links
+    file:
+      path:             "/usr/bin/{{ item }}"
+      state:            absent
+    when:               item not in current_binaries
+    with_items:         "{{ old_binaries }}"
+    become:             true
+    
+  - name: add /usr/bin links
+    file:
+      src:              "/opt/vc/bin/{{ item }}"
+      dest:             "/usr/bin/{{ item }}"
+      owner:            root
+      group:            root
+      state:            link
+    with_items:         "{{ current_binaries }}"
+    become:             true
+    
+  always:
+  - name: delete temporary build directory
+    file:
+      path:             "{{ userland_tmp_dir.path }}"
+      state:            absent
+    when:               userland_tmp_dir is defined
+    changed_when:       false
+    become:             true
+  
 - name: Update firmware if needed
   block:
   - name: add useful tooling
@@ -26,7 +159,7 @@
       name:         "unzip"
       force_apt_get: yes
     become:         true
-  
+    
   - name: Ensures files/generated dir exists on controller
     file: 
       path:         "files/generated"
@@ -56,28 +189,26 @@
     changed_when:   false
     become:         true
     
-  - name: get latest vl805 version
-    find:
-      paths:        "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/firmware/{{ firmware.release }}"
-      patterns:     "vl805-*.bin"
-      file_type:    file
-    register:       vl805_firmwares
-    become:         true
+  - name: create rpi-eeprom-update default file
+    copy:
+      dest:             "/etc/default/rpi-eeprom-update"
+      content:  |
+        BOOTFS=/boot/firmware
+        FIRMWARE_RELEASE_STATUS="{{ firmware_release }}"
+      owner:            root
+      group:            root
+      mode:             '0644'
+    become:             true
     
-  - name: select latest firmware version
-    set_fact:       vl805_version="{{ (vl805_firmwares.files | map(attribute='path') | map('basename') | map('regex_replace', '^vl805-(.*)\\.bin$', '\\1') | list | sort )[-1] }}"
-    
-  - name: Check firmware version
-    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/firmware/vl805 -v {{ firmware_tmp_dir.path }}/rpi-eeprom-master/firmware/{{ firmware.release }}/vl805-{{ vl805_version }}.bin"
-    register:       firmware_check
+  - name: Check if firmware update is needed
+    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update"
+    register:       firmware_check_cmd
     changed_when:   false
-    failed_when:    false
     become:         true
     
-  - name: Update firmware if needed
-    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/firmware/vl805 -w {{ firmware_tmp_dir.path }}/rpi-eeprom-master/firmware/{{ firmware.release }}/vl805-{{ vl805_version }}.bin"
-    when:           firmware_check.rc != 0
-    register:       firmware
+  - name: update if firmware update is needed
+    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update -a"
+    when:           "'UPDATE REQUIRED' in firmware_check_cmd.stdout"
     become:         true
     
   always:
@@ -147,6 +278,6 @@
     when:           build_tmp_dir is defined
     changed_when:   false
   
-  when:             reboot_on_upgrade or firmware.changed or boot_config.changed
+  when:             reboot_on_upgrade or 'UPDATE REQUIRED' in firmware_check_cmd.stdout or boot_config.changed
   become:           true
   

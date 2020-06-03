@@ -1,12 +1,12 @@
 ---
-domain_name: "yggdrasil.local"
-fqdn: "{{ hostname }}.{{ domain_name }}"
+domain_name:    "yggdrasil.local"
+fqdn:           "{{ hostname }}.{{ domain_name }}"
 
-gateway: "192.168.1.1"
+gateway:        "192.168.1.1"
 domain_name_servers:
 - "192.168.1.254"
 
-timezone: "Europe/Paris"
+timezone:       "Europe/Paris"
 
 useful_tools:
 - vim
@@ -18,6 +18,10 @@ useful_tools:
 - wget
 - curl
 - net-tools
+- mlocate
+
+firmware_release:   "critical"
+
 
 # users and passwords should be defined in a vault or a plain text file or just here as follow:
 #####################################
