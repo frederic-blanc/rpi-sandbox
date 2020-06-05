@@ -36,8 +36,6 @@
       - pkg-config
       - cmake
       - git
-      - python3
-      - python-is-python3
     become:             true
     
   - name: Ensures /opt/vc exists
@@ -158,38 +156,40 @@
   block:
   - name: add useful tooling
     apt:
-      name:         "unzip"
-      force_apt_get: yes
-    become:         true
+      name:             "{{ packages }}"
+      force_apt_get:    yes
+    become:             true
+    vars:
+      packages:
+      - python3
+      - python-is-python3
+      - unzip
+    become:             true
     
-  - name: Ensures files/generated dir exists on controller
-    file: 
-      path:         "files/generated"
-      state:        directory
-    delegate_to:    localhost
+  - name: create temporary build directory
+    tempfile:
+      state:            directory
+      suffix:           ".firmware"
+    register:           firmware_tmp_dir
+    changed_when:       false
+    become:             true
     
   - name: download latest firmware version
     get_url:
-      url:         "https://github.com/raspberrypi/rpi-eeprom/archive/master.zip"
-      dest:         "files/generated/rpi-eeprom.zip"
-      force:        true
-    delegate_to:    localhost
-    
-  - name:           create temporary build directory
-    tempfile:
-      state:        directory
-      suffix:       ".firmware"
-    register:       firmware_tmp_dir
-    changed_when:   false
-    become:         true
+      url:              "https://github.com/raspberrypi/rpi-eeprom/archive/master.zip"
+      dest:             "{{ firmware_tmp_dir.path }}/rpi-eeprom.zip"
+      force:            true
+    changed_when:       false
+    become:             true
     
   - name: unarchive firmware repository to firmware_tmp_dir
     unarchive:
-      src:          "files/generated/rpi-eeprom.zip"
-      dest:         "{{ firmware_tmp_dir.path }}"
-      mode:         '0500'
-    changed_when:   false
-    become:         true
+      src:              "{{ firmware_tmp_dir.path }}/rpi-eeprom.zip"
+      dest:             "{{ firmware_tmp_dir.path }}"
+      mode:             '0500'
+      remote_src:       yes
+    changed_when:       false
+    become:             true
     
   - name: create rpi-eeprom-update default file
     copy:
@@ -203,35 +203,35 @@
     become:             true
     
   - name: Check if firmware update is needed
-    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update"
-    register:       firmware_check_cmd
-    changed_when:   false
-    become:         true
+    shell:              "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update"
+    register:           firmware_check_cmd
+    changed_when:       false
+    become:             true
     
   - name: update if firmware update is needed
-    shell:          "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update -a"
-    when:           "'UPDATE REQUIRED' in firmware_check_cmd.stdout"
-    become:         true
+    shell:              "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update -a"
+    when:               "'UPDATE REQUIRED' in firmware_check_cmd.stdout"
+    become:             true
     
   always:
   - name: delete temporary build directory
     file:
-      path:         "{{ firmware_tmp_dir.path }}"
-      state:        absent
-    when:           firmware_tmp_dir is defined
-    changed_when:   false
-    become:         true
+      path:             "{{ firmware_tmp_dir.path }}"
+      state:            absent
+    when:               firmware_tmp_dir is defined
+    changed_when:       false
+    become:             true
   
 - name: Set timezone
   timezone:
-    name:           "{{ timezone }}"
-  become:           true
+    name:               "{{ timezone }}"
+  become:               true
   
 - name: add useful tooling
   apt:
-    name:           "{{ useful_tools }}"
-    force_apt_get:  yes
-  become:           true
+    name:               "{{ useful_tools }}"
+    force_apt_get:      yes
+  become:               true
   
 # reboot if needed
 - name: reboot on change
@@ -280,6 +280,6 @@
   #  when:           build_tmp_dir is defined
   #  changed_when:   false
   
-  when:             reboot_required_file.stat.exists or 'UPDATE REQUIRED' in firmware_check_cmd.stdout or boot_config.changed
-  become:           true
+  when:                 reboot_required_file.stat.exists or 'UPDATE REQUIRED' in firmware_check_cmd.stdout or boot_config.changed
+  become:               true
   
