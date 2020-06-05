@@ -8,3 +8,9 @@ instance_id: cloud-image
 
 package_update:  false
 package_upgrade: false
+
+#to test
+#growpart:
+#  mode:    false
+#  devices: ['/']
+#  ignore_growroot_disabled: false
