@@ -20,7 +20,7 @@ useful_tools:
 - net-tools
 - mlocate
 
-firmware_release:   "critical"
+firmware_release:   "stable"
 
 
 # users and passwords should be defined in a vault or a plain text file or just here as follow:
