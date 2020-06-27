@@ -95,6 +95,12 @@
       owner:            root
       group:            root
       mode:             '0644'
+    register:           ldconfig
+    become:             true
+    
+  - name: reload ldconfig if needed
+    shell:              "ldconfig"
+    when:               ldconfig.changed
     become:             true
     
   - name: get old installed binaries cmd
