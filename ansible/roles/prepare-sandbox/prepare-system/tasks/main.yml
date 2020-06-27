@@ -33,11 +33,11 @@
     vars:
       packages:
       - gcc
+      - g++
       - pkg-config
       - cmake
       - git
       - sshpass
-      - acl
     become:             true
     
   - name: Ensures /opt/vc exists
