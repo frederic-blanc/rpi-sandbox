@@ -205,13 +205,13 @@
   - name: Check if firmware update is needed
     shell:              "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update"
     register:           firmware_check_cmd
-    failed_when:        firmware_check_cmd.rc != 0 or firmware_check_cmd.rc != 1 
+    failed_when:        firmware_check_cmd.rc != 0 and firmware_check_cmd.rc != 1
     changed_when:       false
     become:             true
     
   - name: update if firmware update is needed
     shell:              "{{ firmware_tmp_dir.path }}/rpi-eeprom-master/rpi-eeprom-update -a"
-    when:               firmware_check_cmd.rc == 1 
+    when:               firmware_check_cmd.rc == 1
     become:             true
     
   always:
