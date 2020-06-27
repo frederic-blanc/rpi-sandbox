@@ -37,6 +37,7 @@
       - cmake
       - git
       - sshpass
+      - acl
     become:             true
     
   - name: Ensures /opt/vc exists
