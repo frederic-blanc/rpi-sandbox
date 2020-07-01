@@ -2,14 +2,14 @@
 - name: prepare node
   hosts: all
   roles:
-  - prepare-sandbox/prepare-system
-  - prepare-sandbox/prepare-network
-  - prepare-sandbox/prepare-users
+  - prepare-server/prepare-system
+  - prepare-server/prepare-network
+  - prepare-server/prepare-users
   - prepare-sandbox/install-docker
   - prepare-sandbox/install-devtools
   
 - name: lock ubuntu account
   hosts: all
   roles:
-  - prepare-sandbox/lock-ubuntu-user
+  - prepare-server/lock-ubuntu-user
   

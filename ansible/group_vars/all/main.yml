@@ -4,7 +4,8 @@ fqdn:           "{{ hostname }}.{{ domain_name }}"
 
 gateway:        "192.168.1.1"
 domain_name_servers:
-- "192.168.1.254"
+- "127.0.0.1"
+- "192.168.1.1"
 
 timezone:       "Europe/Paris"
 
@@ -22,7 +23,6 @@ useful_tools:
 
 firmware_release:   "stable"
 
-
 # users and passwords should be defined in a vault or a plain text file or just here as follow:
 #####################################
 # work_users:
@@ -39,4 +39,3 @@ firmware_release:   "stable"
 prompts:
   user: '\[\033[38;5;22m\]\u@\h:\[$(tput sgr0)\]\[\033[38;5;3m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]\n\\$ \[$(tput sgr0)\]'
   root: '\[\033[38;5;1m\]\u@\h:\[$(tput sgr0)\]\[\033[38;5;27m\]\w\[$(tput sgr0)\]\[\033[38;5;15m\]\n\\$ \[$(tput sgr0)\]'
-
