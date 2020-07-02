@@ -5,11 +5,10 @@
   - prepare-server/prepare-system
   - prepare-server/prepare-network
   - prepare-server/prepare-users
-  - prepare-sandbox/install-docker
-  - prepare-sandbox/install-devtools
+  - install-sandbox/install-docker
+  - install-sandbox/install-devtools
   
 - name: lock ubuntu account
   hosts: all
   roles:
   - prepare-server/lock-ubuntu-user
-  
