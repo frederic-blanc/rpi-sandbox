@@ -1,6 +1,3 @@
-[submodule "ansible/roles/install-sandbox/install-unbound"]
-	path = ansible/roles/install-sandbox/install-unbound
-	url = https://github.com/frederic-blanc/rpi-ansible-role_install-unbound
 [submodule "ansible/roles/install-sandbox/install-docker"]
 	path = ansible/roles/install-sandbox/install-docker
 	url = https://github.com/frederic-blanc/rpi-ansible-role_install-docker
@@ -16,3 +13,10 @@
 [submodule "ansible/roles/prepare-server/prepare-users"]
 	path = ansible/roles/prepare-server/prepare-users
 	url = https://github.com/frederic-blanc/rpi-ansible-role_prepare-users
+
+[submodule "ansible/roles/install-sandbox/install-devtools"]
+	path = ansible/roles/install-sandbox/install-devtools
+	url = https://github.com/frederic-blanc/rpi-ansible-role_install-devtools
+[submodule "ansible/roles/install-unbound"]
+	path = ansible/roles/install-unbound
+	url = https://github.com/frederic-blanc/rpi-ansible-role_install-unbound

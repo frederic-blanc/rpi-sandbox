@@ -7,6 +7,7 @@
   - prepare-server/prepare-users
   - install-sandbox/install-docker
   - install-sandbox/install-devtools
+  - install-unbound
   
 - name: lock ubuntu account
   hosts: all
