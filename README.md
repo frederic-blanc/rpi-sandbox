@@ -7,3 +7,5 @@ To manage ip setting and an ubuntu account not expired (as well as a non update 
 
 Template files can be found in the cloud-init folder and it must copied in the /boot partition just after the image burn. Just Change your targeted IP address in the network-config file.
 
+à tester :
+https://discourse.ubuntubudgie.org/t/ubuntu-budgie-plans-for-raspberry-pi/4310/23?page=2
